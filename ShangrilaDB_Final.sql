@@ -1,7 +1,7 @@
 CREATE DATABASE ShangrilaDB;
-
+GO
 USE ShangrilaDB;
-
+GO
 CREATE TABLE Guest
 (
     GuestID INT IDENTITY(1,1) PRIMARY KEY,
@@ -13,6 +13,7 @@ CREATE TABLE Guest
     Address VARCHAR(255) NULL,
     Nationality VARCHAR(50) NULL
 );
+GO
 
 CREATE TABLE RoomType
 (
@@ -22,7 +23,7 @@ CREATE TABLE RoomType
     BasePrice DECIMAL(10,2) NOT NULL,
     MaxOccupancy INT NOT NULL
 );
-
+GO
 CREATE TABLE Room
 (
     RoomID INT IDENTITY(1,1) PRIMARY KEY,
@@ -32,14 +33,14 @@ CREATE TABLE Room
     RoomTypeID INT NOT NULL,
 CONSTRAINT FK_Room_RoomType FOREIGN KEY (RoomTypeID) REFERENCES RoomType(RoomTypeID)
 );
-
+GO
 CREATE TABLE Department
 (
     DepartmentID INT IDENTITY(1,1) PRIMARY KEY,
     DepartmentName VARCHAR(100) NOT NULL,
     ManagerID INT NULL
 );
-
+GO
 CREATE TABLE Staff
 (
     StaffID INT IDENTITY(1,1) PRIMARY KEY,
@@ -52,7 +53,7 @@ CREATE TABLE Staff
     DepartmentID INT NULL,
 CONSTRAINT FK_Staff_Department FOREIGN KEY (DepartmentID)REFERENCES Department(DepartmentID)
 );
-
+GO
 ALTER TABLE Department
 ADD CONSTRAINT FK_Department_Manager
     FOREIGN KEY (ManagerID)
@@ -65,7 +66,7 @@ CREATE TABLE Service
     Description VARCHAR(MAX) NULL,
     Price DECIMAL(10,2) NOT NULL
 );
-
+GO
 CREATE TABLE Reservation
 (
     ReservationID INT IDENTITY(1,1) PRIMARY KEY,
@@ -138,7 +139,7 @@ INSERT INTO Room
 (RoomNumber, Floor, Status, RoomTypeID)VALUES
 ('101', 1, 'Available', 1),
 ('102', 1, 'Occupied', 1),
-('201', 2, 'AvailableCH', 2),
+('201', 2, 'Available', 2),
 ('301', 3, 'Available', 3);
 
 INSERT INTO Department
@@ -384,3 +385,52 @@ FROM RoomType;
 SELECT
     MIN(BasePrice) AS LowestRoomPrice
 FROM RoomType;
+
+CREATE ROLE AdminRole;
+GRANT CONTROL ON DATABASE::ShangrilaDB TO AdminRole;
+
+CREATE ROLE ReceptionRole;
+
+GRANT SELECT, INSERT, UPDATE ON Guest TO ReceptionRole;
+GRANT SELECT, INSERT, UPDATE ON Reservation TO ReceptionRole;
+GRANT SELECT, INSERT, UPDATE ON Payment TO ReceptionRole;
+GRANT SELECT ON Room TO ReceptionRole;
+GRANT SELECT ON RoomType TO ReceptionRole;
+GRANT SELECT ON Service TO ReceptionRole;
+DENY DELETE ON Guest TO ReceptionRole;
+DENY DELETE ON Reservation TO ReceptionRole;
+DENY DELETE ON Payment TO ReceptionRole;
+
+CREATE ROLE InventoryRole;
+
+GRANT SELECT, INSERT, UPDATE ON Supplier TO InventoryRole;
+GRANT SELECT ON Service TO InventoryRole;
+GRANT SELECT ON Room TO InventoryRole;
+GRANT SELECT ON RoomType TO InventoryRole;
+DENY DELETE ON Supplier TO InventoryRole;
+
+CREATE ROLE ServiceRole;
+
+GRANT SELECT, INSERT, UPDATE ON ServiceOrder TO ServiceRole;
+GRANT SELECT ON Service TO ServiceRole;
+GRANT SELECT ON Guest TO ServiceRole;
+GRANT SELECT, UPDATE ON Room TO ServiceRole;
+DENY DELETE ON ServiceOrder TO ServiceRole;
+DENY SELECT ON Payment TO ServiceRole;
+DENY SELECT ON Reservation TO ServiceRole;
+
+CREATE ROLE ReportingRole;
+
+GRANT SELECT ON Guest TO ReportingRole;
+GRANT SELECT ON RoomType TO ReportingRole;
+GRANT SELECT ON Room TO ReportingRole;
+GRANT SELECT ON Department TO ReportingRole;
+GRANT SELECT ON Staff TO ReportingRole;
+GRANT SELECT ON Service TO ReportingRole;
+GRANT SELECT ON Reservation TO ReportingRole;
+GRANT SELECT ON Payment TO ReportingRole;
+GRANT SELECT ON ServiceOrder TO ReportingRole;
+GRANT SELECT ON Supplier TO ReportingRole;
+DENY INSERT ON Guest TO ReportingRole;
+DENY UPDATE ON Guest TO ReportingRole;
+DENY DELETE ON Guest TO ReportingRole;
